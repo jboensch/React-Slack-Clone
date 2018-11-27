@@ -1,4 +1,4 @@
-import * as actionTypes from './types';
+import * as actionTypes from "./types";
 
 export const setUser = user => {
     return {
@@ -6,5 +6,5 @@ export const setUser = user => {
         payload: {
             currentUser: user
         }
-    }
-}
+    };
+};
