@@ -36,6 +36,7 @@ class UserPanel extends React.Component {
 
     render() {
         const { user } = this.state;
+
         return (
             <Grid style={{ background: "#4c3c4c" }}>
                 <Grid.Column>
@@ -58,10 +59,7 @@ class UserPanel extends React.Component {
                                 options={this.dropdownOptions()}
                             />
                         </Header>
-
                     </Grid.Row>
-
-
                 </Grid.Column>
             </Grid>
         );
