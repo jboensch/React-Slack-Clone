@@ -1,12 +1,12 @@
-import React from 'react';
-import firebase from '../../firebase';
-import { connect } from 'react-redux';
-import { setCurrentChannel, setPrivateChannel } from '../../actions';
-import { Menu, Icon } from 'semantic-ui-react';
+import React from "react";
+import firebase from "../../firebase";
+import { connect } from "react-redux";
+import { setCurrentChannel, setPrivateChannel } from "../../actions";
+import { Menu, Icon } from "semantic-ui-react";
 
-//this will be a stateful component
 class DirectMessages extends React.Component {
     state = {
+        activeChannel: "",
         user: this.props.currentUser,
         users: [],
         usersRef: firebase.database().ref("users"),
@@ -15,7 +15,6 @@ class DirectMessages extends React.Component {
     };
 
     componentDidMount() {
-        //check if we have some user data
         if (this.state.user) {
             this.addListeners(this.state.user.uid);
         }
@@ -24,7 +23,6 @@ class DirectMessages extends React.Component {
     addListeners = currentUserUid => {
         let loadedUsers = [];
         this.state.usersRef.on("child_added", snap => {
-            //ensure we do not includes ourselves in the loadedUsers array
             if (currentUserUid !== snap.key) {
                 let user = snap.val();
                 user["uid"] = snap.key;
@@ -38,7 +36,6 @@ class DirectMessages extends React.Component {
             if (snap.val() === true) {
                 const ref = this.state.presenceRef.child(currentUserUid);
                 ref.set(true);
-                //if our user disconnects from the app we will remove it from presence
                 ref.onDisconnect().remove(err => {
                     if (err !== null) {
                         console.error(err);
@@ -47,20 +44,14 @@ class DirectMessages extends React.Component {
             }
         });
 
-        //when someone is added to presence do this
         this.state.presenceRef.on("child_added", snap => {
-            //and its not us
             if (currentUserUid !== snap.key) {
-                //add status to the user
                 this.addStatusToUser(snap.key);
             }
         });
 
-        //when someone is removed from presence do this
-        this.state.presenceRef.on('child_removed', snap => {
-            //and its not us
+        this.state.presenceRef.on("child_removed", snap => {
             if (currentUserUid !== snap.key) {
-                //add status to the user
                 this.addStatusToUser(snap.key, false);
             }
         });
@@ -86,16 +77,22 @@ class DirectMessages extends React.Component {
         };
         this.props.setCurrentChannel(channelData);
         this.props.setPrivateChannel(true);
-    }
+        this.setActiveChannel(user.uid);
+    };
 
     getChannelId = userId => {
-        const currentUserUid = this.state.user.uid;
-        return userId < currentUserUid ?
-            `${userId}/${currentUserUid}` : `${currentUserUid}/${userId}`;
-    }
+        const currentUserId = this.state.user.uid;
+        return userId < currentUserId
+            ? `${userId}/${currentUserId}`
+            : `${currentUserId}/${userId}`;
+    };
+
+    setActiveChannel = userId => {
+        this.setState({ activeChannel: userId });
+    };
 
     render() {
-        const { users } = this.state;
+        const { users, activeChannel } = this.state;
 
         return (
             <Menu.Menu className="menu">
@@ -108,6 +105,7 @@ class DirectMessages extends React.Component {
                 {users.map(user => (
                     <Menu.Item
                         key={user.uid}
+                        active={user.uid === activeChannel}
                         onClick={() => this.changeChannel(user)}
                         style={{ opacity: 0.7, fontStyle: "italic" }}
                     >
@@ -123,4 +121,7 @@ class DirectMessages extends React.Component {
     }
 }
 
-export default connect(null, { setCurrentChannel, setPrivateChannel })(DirectMessages);
+export default connect(
+    null,
+    { setCurrentChannel, setPrivateChannel }
+)(DirectMessages);

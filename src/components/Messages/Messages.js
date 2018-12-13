@@ -8,13 +8,15 @@ import Message from "./Message";
 
 class Messages extends React.Component {
   state = {
+    privateChannel: this.props.isPrivateChannel,
+    privateMessagesRef: firebase.database().ref("privateMessages"),
     messagesRef: firebase.database().ref("messages"),
     messages: [],
     messagesLoading: true,
     channel: this.props.currentChannel,
     user: this.props.currentUser,
-    numUniqueUsers: '',
-    searchTerm: '',
+    numUniqueUsers: "",
+    searchTerm: "",
     searchLoading: false,
     searchResults: []
   };
@@ -33,7 +35,8 @@ class Messages extends React.Component {
 
   addMessageListener = channelId => {
     let loadedMessages = [];
-    this.state.messagesRef.child(channelId).on("child_added", snap => {
+    const ref = this.getMessagesRef();
+    ref.child(channelId).on("child_added", snap => {
       loadedMessages.push(snap.val());
       this.setState({
         messages: loadedMessages,
@@ -43,32 +46,36 @@ class Messages extends React.Component {
     });
   };
 
+  getMessagesRef = () => {
+    const { messagesRef, privateMessagesRef, privateChannel } = this.state;
+    return privateChannel ? privateMessagesRef : messagesRef;
+  };
+
   handleSearchChange = event => {
-    this.setState({
-      searchTerm: event.target.value,
-      searchLoading: true
-    }, () => this.handleSearchMessages());
+    this.setState(
+      {
+        searchTerm: event.target.value,
+        searchLoading: true
+      },
+      () => this.handleSearchMessages()
+    );
   };
 
   handleSearchMessages = () => {
-    //make a copy of our messages to be searched, so we do not change the original messages array
     const channelMessages = [...this.state.messages];
-    const regex = new RegExp(this.state.searchTerm, 'gi');
+    const regex = new RegExp(this.state.searchTerm, "gi");
     const searchResults = channelMessages.reduce((acc, message) => {
-      //use content.match to apply our regex to the message,
-      // if we have a match on the content, we will push the 
-      // entire message onto the accumulator
-      //ALSO, search by username as well
-      if ((message.content && message.content.match(regex)) || message.user.name.match(regex)) {
+      if (
+        (message.content && message.content.match(regex)) ||
+        message.user.name.match(regex)
+      ) {
         acc.push(message);
       }
       return acc;
     }, []);
     this.setState({ searchResults });
-    //user setTimeout to add a delay to the searchLoading icon animation, ensure it is seen
-    //750ms
-    setTimeout(() => this.setState({ searchLoading: false }), 750);
-  }
+    setTimeout(() => this.setState({ searchLoading: false }), 1000);
+  };
 
   countUniqueUsers = messages => {
     const uniqueUsers = messages.reduce((acc, message) => {
@@ -78,9 +85,9 @@ class Messages extends React.Component {
       return acc;
     }, []);
     const plural = uniqueUsers.length > 1 || uniqueUsers.length === 0;
-    const numUniqueUsers = `${uniqueUsers.length} user${plural ? 's' : ''}`;
+    const numUniqueUsers = `${uniqueUsers.length} user${plural ? "s" : ""}`;
     this.setState({ numUniqueUsers });
-  }
+  };
 
   displayMessages = messages =>
     messages.length > 0 &&
@@ -92,10 +99,15 @@ class Messages extends React.Component {
       />
     ));
 
-  displayChannelName = channel => channel ? `#${channel.name}` : '';
+  displayChannelName = channel => {
+    return channel
+      ? `${this.state.privateChannel ? "@" : "#"}${channel.name}`
+      : "";
+  };
 
   render() {
-    const { messagesRef, messages, channel, user, numUniqueUsers, searchTerm, searchResults, searchLoading } = this.state;
+    // prettier-ignore
+    const { messagesRef, messages, channel, user, numUniqueUsers, searchTerm, searchResults, searchLoading, privateChannel } = this.state;
 
     return (
       <React.Fragment>
@@ -104,11 +116,14 @@ class Messages extends React.Component {
           numUniqueUsers={numUniqueUsers}
           handleSearchChange={this.handleSearchChange}
           searchLoading={searchLoading}
+          isPrivateChannel={privateChannel}
         />
 
         <Segment>
           <Comment.Group className="messages">
-            {searchTerm ? this.displayMessages(searchResults) : this.displayMessages(messages)}
+            {searchTerm
+              ? this.displayMessages(searchResults)
+              : this.displayMessages(messages)}
           </Comment.Group>
         </Segment>
 
@@ -116,6 +131,8 @@ class Messages extends React.Component {
           messagesRef={messagesRef}
           currentChannel={channel}
           currentUser={user}
+          isPrivateChannel={privateChannel}
+          getMessagesRef={this.getMessagesRef}
         />
       </React.Fragment>
     );

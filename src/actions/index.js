@@ -23,8 +23,8 @@ export const setCurrentChannel = channel => {
     payload: {
       currentChannel: channel
     }
-  }
-}
+  };
+};
 
 export const setPrivateChannel = isPrivateChannel => {
   return {
@@ -32,5 +32,5 @@ export const setPrivateChannel = isPrivateChannel => {
     payload: {
       isPrivateChannel
     }
-  }
-}
+  };
+};

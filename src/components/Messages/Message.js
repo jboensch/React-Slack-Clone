@@ -21,8 +21,8 @@ const Message = ({ message, user }) => (
       {isImage(message) ? (
         <Image src={message.image} className="message__image" />
       ) : (
-        <Comment.Text>{message.content}</Comment.Text>
-      )}
+          <Comment.Text>{message.content}</Comment.Text>
+        )}
     </Comment.Content>
   </Comment>
 );
