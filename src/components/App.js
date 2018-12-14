@@ -8,7 +8,7 @@ import SidePanel from "./SidePanel/SidePanel";
 import Messages from "./Messages/Messages";
 import MetaPanel from "./MetaPanel/MetaPanel";
 
-//prettier ignore
+// prettier-ignore
 const App = ({ currentUser, currentChannel, isPrivateChannel, userPosts, primaryColor, secondaryColor }) => (
   <Grid columns="equal" className="app" style={{ background: secondaryColor }}>
     <ColorPanel
@@ -35,7 +35,8 @@ const App = ({ currentUser, currentChannel, isPrivateChannel, userPosts, primary
         key={currentChannel && currentChannel.name}
         userPosts={userPosts}
         currentChannel={currentChannel}
-        isPrivateChannel={isPrivateChannel} />
+        isPrivateChannel={isPrivateChannel}
+      />
     </Grid.Column>
   </Grid>
 );
