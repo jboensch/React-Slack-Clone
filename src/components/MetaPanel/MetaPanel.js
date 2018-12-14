@@ -1,11 +1,12 @@
 import React from "react";
-import { Segment, Accordion, Header, Icon, Image } from 'semantic-ui-react';
+import { Segment, Accordion, Header, Icon, Image } from "semantic-ui-react";
+
 class MetaPanel extends React.Component {
   state = {
     channel: this.props.currentChannel,
     privateChannel: this.props.isPrivateChannel,
     activeIndex: 0
-  }
+  };
 
   setActiveIndex = (event, titleProps) => {
     const { index } = titleProps;
@@ -17,12 +18,12 @@ class MetaPanel extends React.Component {
   render() {
     const { activeIndex, privateChannel, channel } = this.state;
 
-    //added second condition below because it takes a moment for the state to be initialized, and we were getting an error before it was finished
-    if (privateChannel || !channel) return null;
+    if (privateChannel) return null;
+
     return (
       <Segment loading={!channel}>
         <Header as="h3" attached="top">
-          About #{channel && channel.name}
+          About # {channel && channel.name}
         </Header>
         <Accordion styled attached="true">
           <Accordion.Title
@@ -37,6 +38,7 @@ class MetaPanel extends React.Component {
           <Accordion.Content active={activeIndex === 0}>
             {channel && channel.details}
           </Accordion.Content>
+
           <Accordion.Title
             active={activeIndex === 1}
             index={1}
@@ -63,7 +65,6 @@ class MetaPanel extends React.Component {
             <Header as="h3">
               <Image circular src={channel && channel.createdBy.avatar} />
               {channel && channel.createdBy.name}
-
             </Header>
           </Accordion.Content>
         </Accordion>
