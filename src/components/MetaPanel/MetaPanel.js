@@ -9,7 +9,7 @@ class MetaPanel extends React.Component {
 
   setActiveIndex = (event, titleProps) => {
     const { index } = titleProps;
-    const { activeIndex } = this.statel;
+    const { activeIndex } = this.state;
     const newIndex = activeIndex === index ? -1 : index;
     this.setState({ activeIndex: newIndex });
   };
