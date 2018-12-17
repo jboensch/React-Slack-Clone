@@ -8,6 +8,7 @@ import MessagesHeader from "./MessagesHeader";
 import MessageForm from "./MessageForm";
 import Message from "./Message";
 import Typing from "./Typing";
+import Skeleton from "./Skeleton";
 
 class Messages extends React.Component {
   state = {
@@ -24,9 +25,9 @@ class Messages extends React.Component {
     searchTerm: "",
     searchLoading: false,
     searchResults: [],
-    typingRef: firebase.database().ref('typing'),
+    typingRef: firebase.database().ref("typing"),
     typingUsers: [],
-    connectedRef: firebase.database().ref('.info/connected')
+    connectedRef: firebase.database().ref(".info/connected")
   };
 
   componentDidMount() {
@@ -45,8 +46,8 @@ class Messages extends React.Component {
   }
 
   scrollToBottom = () => {
-    this.messagesEnd.scrollIntoView({ behaviror: 'smooth' });
-  }
+    this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  };
 
   addListeners = channelId => {
     this.addMessageListener(channelId);
@@ -55,34 +56,38 @@ class Messages extends React.Component {
 
   addTypingListeners = channelId => {
     let typingUsers = [];
-    this.state.typingRef.child(channelId).on('child_added', snap => {
+    this.state.typingRef.child(channelId).on("child_added", snap => {
       if (snap.key !== this.state.user.uid) {
         typingUsers = typingUsers.concat({
           id: snap.key,
           name: snap.val()
-        })
+        });
         this.setState({ typingUsers });
       }
-    })
+    });
 
-    this.state.typingRef.child(channelId).on('child_removed', snap => {
+    this.state.typingRef.child(channelId).on("child_removed", snap => {
       const index = typingUsers.findIndex(user => user.id === snap.key);
       if (index !== -1) {
         typingUsers = typingUsers.filter(user => user.id !== snap.key);
         this.setState({ typingUsers });
       }
-    })
+    });
 
-    this.state.connectedRef.on('value', snap => {
+    this.state.connectedRef.on("value", snap => {
       if (snap.val() === true) {
         this.state.typingRef
           .child(channelId)
           .child(this.state.user.uid)
           .onDisconnect()
-          .remove(err => { if (err !== null) { console.error(err) } })
+          .remove(err => {
+            if (err !== null) {
+              console.error(err);
+            }
+          });
       }
-    })
-  }
+    });
+  };
 
   addMessageListener = channelId => {
     let loadedMessages = [];
@@ -219,17 +224,29 @@ class Messages extends React.Component {
       : "";
   };
 
-  displayTypingUsers = users => (
-    users.length > 0 && users.map(user => (
-      <div style={{ display: "flex", alignItems: "center", marginBottom: '0.2em' }} key={user.id}>
+  displayTypingUsers = users =>
+    users.length > 0 &&
+    users.map(user => (
+      <div
+        style={{ display: "flex", alignItems: "center", marginBottom: "0.2em" }}
+        key={user.id}
+      >
         <span className="user__typing">{user.name} is typing</span> <Typing />
-      </div >
-    ))
-  )
+      </div>
+    ));
+
+  displayMessageSkeleton = loading =>
+    loading ? (
+      <React.Fragment>
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i} />
+        ))}
+      </React.Fragment>
+    ) : null;
 
   render() {
     // prettier-ignore
-    const { messagesRef, messages, channel, user, numUniqueUsers, searchTerm, searchResults, searchLoading, privateChannel, isChannelStarred, typingUsers } = this.state;
+    const { messagesRef, messages, channel, user, numUniqueUsers, searchTerm, searchResults, searchLoading, privateChannel, isChannelStarred, typingUsers, messagesLoading } = this.state;
 
     return (
       <React.Fragment>
@@ -245,11 +262,12 @@ class Messages extends React.Component {
 
         <Segment>
           <Comment.Group className="messages">
+            {this.displayMessageSkeleton(messagesLoading)}
             {searchTerm
               ? this.displayMessages(searchResults)
               : this.displayMessages(messages)}
             {this.displayTypingUsers(typingUsers)}
-            <div ref={node => (this.messagesEnd = node)}></div>
+            <div ref={node => (this.messagesEnd = node)} />
           </Comment.Group>
         </Segment>
 
